@@ -1,0 +1,27 @@
+name: SonarQube Analysis
+ 
+on:
+  push:
+    branches:
+      - main
+ 
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+ 
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+ 
+      - name: SonarQube Scan
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=my_project_key \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=http://<adresse_serveur>:9000 \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
