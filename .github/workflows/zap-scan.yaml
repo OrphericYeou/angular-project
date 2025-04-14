@@ -1,4 +1,4 @@
-name: OWASP ZAP Baseline Scan
+name: OWASP ZAP Scan
 
 on:
   workflow_dispatch:
@@ -8,17 +8,37 @@ on:
 jobs:
   zap_scan:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Start app (exemple Node)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Angular app
+        run: npm run build
+
+      - name: Serve Angular app (background)
         run: |
-          npm install --legacy-peer-deps
-          nohup npm run start &  # ou autre commande pour démarrer l'app
-          sleep 15
+          npm install -g http-server
+          nohup http-server ./dist --port 4200 > server.log 2>&1 &
+          sleep 10
 
       - name: Run ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
-          target: "http://localhost:4200"
+          target: 'http://localhost:4200'
+          cmd_options: '-a' # active scan (optionnel)
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html
+
